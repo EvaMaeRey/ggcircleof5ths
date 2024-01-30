@@ -1,5 +1,4 @@
 
-  - [*To the reader*](#to-the-reader)
   - [Part 0. Proposal](#part-0-proposal)
   - [Part I. Work out functionality ✅](#part-i-work-out-functionality-)
       - [Try it out](#try-it-out)
@@ -51,39 +50,54 @@
       - [Environment](#environment)
       - [`devtools::check()` report](#devtoolscheck-report)
 
-# *To the reader*
-
-Welcome to the R package building helper *readme2pkg.template*\!
-
-Below, is a readme that provides steps for building a package. This
-readme acts as a worksheet, checklist, and control document as functions
-used in package building are included within.
-
-We’ll use the `{readme2pkg}` helper package to send code chunks to
-different directories in the package.
-
-To install `{readme2pkg}`:
-
-``` 
-
-remotes::install.github("EvaMaeRey/readme2pkg")
-```
-
 # Part 0. Proposal
 
-Proposing the {xxxx} package\! 🦄
+Proposing the {ggcircleof5ths} package\! 🦄
 <!-- (typical package introduction write up; but actually aspirational) -->
 
-The goal of {xxxx} is to make … easier.
+The goal of {ggcircleof5ths} is to make … easier.
 
 Without the package, we live in the effort-ful world that follows 🏋:
 
 ``` r
-x <- 4
+wrap_vector <- function(x, start){
+  
+  len <- length(x)
+  start_index <- which(start == x)
+  
+  c(x[start_index:len], x[1:(start_index-1)])
+  
+}
 
-2*x
-#> [1] 8
+
+major = c("C", "G", "D", "A", "E", "B",
+            "Gb","Db", "Ab", "Eb", "Bb", "F")
+minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
+            "Bbm", "Fm", "Cm", "Gm", "Dm")
+
+
+spot = 1:12
+library(ggstamp)
+ggcanvas() +
+  stamp_circle(radius = 1.4, x0 = 0, y0 = 0) +
+  stamp_text(xy = pos_polygon(x0 = 0, y0 = 0, n = 12,
+             radius = 1.1),
+             label = wrap_vector(major, "D"),
+             size = 6) +
+  stamp_circle(radius = .8,x0 = 0, y0 = 0) +
+  stamp_text(xy = pos_polygon(n = 12, radius = .5),
+             label = minor,
+             size = 5) +
+  stamp_spoke(radius = 1.4, x0 = 0, y0 = 0,
+              angle = pi*1:12/6 +
+                1/12*pi) + 
+  stamp_point(color = "magenta",
+              xy = pos_polygon(n = 12,
+             radius = 1.1)[which(wrap_vector(major, "D")=="A"),],
+             alpha = .2, size = 20)
 ```
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 With the {xxxx} package, we’ll live in a different world (🦄 🦄 🦄) where
 the task is a snap 🫰:
@@ -92,9 +106,13 @@ Proposed API:
 
 ``` 
 
-library(xxxxx)
+library(ggcircleof5ths)
 
-xxxxx::times_two(x = 4)
+df_chords_lyrics |>
+ ggplot() + 
+ aes(chords = chords) + 
+ facet_wrap(vars = fct_inorder(lyrics)) +
+ geom_cof()
 ```
 
 # Part I. Work out functionality ✅
@@ -251,9 +269,9 @@ all[11:17]
 #> [2] "attached base packages:"                                                  
 #> [3] "[1] stats     graphics  grDevices utils     datasets  methods   base     "
 #> [4] ""                                                                         
-#> [5] "loaded via a namespace (and not attached):"                               
-#> [6] " [1] compiler_4.2.2  fastmap_1.1.1   cli_3.6.1       tools_4.2.2    "     
-#> [7] " [5] htmltools_0.5.4 rstudioapi_0.14 yaml_2.3.7      rmarkdown_2.20 "
+#> [5] "other attached packages:"                                                 
+#> [6] "[1] ggstamp_0.0.0.9000"                                                   
+#> [7] ""
 ```
 
 ## `devtools::check()` report
