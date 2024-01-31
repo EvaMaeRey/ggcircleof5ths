@@ -205,6 +205,36 @@ tibble(phrase = 1:7, chord = LETTERS[1:7]) |>
 
 ```
 
+
+```{r}
+
+
+geom_cofifths <- function(r = 1, size = 1, color_highlight = "red", alpha_highlight = .2){
+  
+  list(
+  geom_circle(n_vertices = 50, aes(r = r)), 
+  geom_circle(n_vertices = 50, aes(r = r*.6)), 
+  geom_spoke(rotate = 90/6, aes(r = r)), 
+  geom_labs(maj = T, aes(r = r*.8)) , 
+  geom_labs(maj = F, aes(r = r*.4), size = size *2), 
+  geom_chord_highlight(aes(r = r*.8), size = size*12, color = color_highlight, 
+                       alpha = alpha_highlight) 
+  )
+  
+}
+
+
+tibble(chord_index = 0:6, chord = LETTERS[1:7]) |>
+  ggplot() + 
+    aes(x0 = chord_index %% 4 , 
+        y0 = -(chord_index %/% 4), 
+        chord = chord) + 
+  geom_cofifths(r = .45) + 
+  coord_equal() +
+  labs(title = "An unusual chord progression: A to G in Alphabet")
+```
+
+
   
 With the {xxxx} package, we'll live in a different world (🦄 🦄 🦄) where the task is a snap 🫰: 
 
