@@ -157,7 +157,7 @@ data.frame(x0 = 0:1, y0 = 0:1, r = 1:2/3) |>
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
-compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, key = "C", rotate = 0){
+compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, key = "C", rotate = 90){
   
   data |> 
     mutate(group = row_number()) |> 
@@ -170,7 +170,7 @@ compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, 
 }
 
 
-compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate = 0){
+compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate = 90-30){
   
     major = c("C", "G", "D", "A", "E", "B",
             "Gb","Db", "Ab", "Eb", "Bb", "F")
@@ -181,7 +181,7 @@ compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate =
 
   
   compute_panel_circle5ths(data = data, scales = scales, maj = maj, key = key, rotate = rotate) |>
-    slice(-1) |>
+    slice(-nrow(data)) |>
     mutate(major = major) |>
     mutate(minor = minor) |>
     mutate(label = label)
