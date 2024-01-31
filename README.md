@@ -60,20 +60,34 @@ The goal of {ggcircleof5ths} is to make … easier.
 Without the package, we live in the effort-ful world that follows 🏋:
 
 ``` r
-wrap_vector <- function(x, start){
-  
-  len <- length(x)
-  start_index <- which(start == x)
-  
-  c(x[start_index:len], x[1:(start_index-1)])
-  
-}
-
 
 major = c("C", "G", "D", "A", "E", "B",
             "Gb","Db", "Ab", "Eb", "Bb", "F")
 minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
             "Bbm", "Fm", "Cm", "Gm", "Dm")
+
+
+get_key_index <-function(key){
+  
+  if(key %in% major){key_index <- which(major == key)}
+  if(key %in% minor){key_index <- which(minor == key)}
+  key_index
+  
+} 
+
+get_key_index(key = "D")
+#> [1] 3
+
+
+wrap_vector <- function(x, key){
+  
+  len <- length(x)
+  start_index <- get_key_index(key)
+  
+  c(x[start_index:len], x[1:(start_index-1)])
+  
+}
+
 
 
 spot = 1:12
@@ -86,7 +100,7 @@ ggcanvas() +
              size = 6) +
   stamp_circle(radius = .8,x0 = 0, y0 = 0) +
   stamp_text(xy = pos_polygon(n = 12, radius = .5),
-             label = minor,
+             label = wrap_vector(minor, "D"),
              size = 5) +
   stamp_spoke(radius = 1.4, x0 = 0, y0 = 0,
               angle = pi*1:12/6 +
@@ -98,6 +112,148 @@ ggcanvas() +
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+``` r
+library(tidyverse)
+#> ── Attaching core tidyverse packages ─────────────────── tidyverse 2.0.0.9000 ──
+#> ✔ dplyr     1.1.0          ✔ readr     2.1.4     
+#> ✔ forcats   1.0.0          ✔ stringr   1.5.0     
+#> ✔ ggplot2   3.4.4.9000     ✔ tibble    3.2.1     
+#> ✔ lubridate 1.9.2          ✔ tidyr     1.3.0     
+#> ✔ purrr     1.0.1          
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+compute_panel_circle <- function(data, scales, n = 15){
+  
+  data |> 
+    mutate(group = row_number()) |> 
+    crossing(tibble(z = 0:n)) |>
+    mutate(around = 2*pi*z/max(z)) |> 
+    mutate(x = x0 + cos(around)*r,
+           y = y0 + sin(around)*r) 
+  
+}
+
+geom_circle <- function(...){
+  
+  ggtemp:::define_layer_temp(
+    required_aes = c("x0", "y0", "r"),
+    compute_panel = compute_panel_circle,
+    geom = ggplot2::GeomPath,
+    ...)
+  
+}
+
+library(ggplot2)
+data.frame(x0 = 0:1, y0 = 0:1, r = 1:2/3) |>
+  ggplot() +
+  aes(x0 = x0, y0 = y0, r = r) +
+  geom_circle() +
+  aes(fill = r)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
+compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, key = "C", rotate = 0){
+  
+  data |> 
+    mutate(group = row_number()) |> 
+    crossing(tibble(z = 0:n_vertices)) |>
+    mutate(around = 2*pi*z/max(z) + rotate/180*pi) |> 
+    mutate(xend = x0, yend = y0) |>
+    mutate(x = x0 + cos(around)*r,
+           y = y0 + sin(around)*r)
+  
+}
+
+
+compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate = 0){
+  
+    major = c("C", "G", "D", "A", "E", "B",
+            "Gb","Db", "Ab", "Eb", "Bb", "F")
+  minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
+            "Bbm", "Fm", "Cm", "Gm", "Dm")
+  
+    if(maj){label <- major}else{label <- minor}
+
+  
+  compute_panel_circle5ths(data = data, scales = scales, maj = maj, key = key, rotate = rotate) |>
+    slice(-1) |>
+    mutate(major = major) |>
+    mutate(minor = minor) |>
+    mutate(label = label)
+  
+  
+}
+
+
+compute_group_chord_highlight <- function(data, scales, maj = T, key = "C", rotate = rotate){
+  
+  
+  compute_group_spokes_labs(data = data, scales = scales, maj = maj, key = key) |>
+    filter(major == chord | minor == chord)
+  
+  
+}
+
+
+ggtemp:::create_layer_temp("geom_circle",
+    required_aes = c("x0", "y0", "r"),
+    compute_panel = compute_panel_circle5ths,
+    geom = ggplot2::GeomPath)
+
+ggtemp:::create_layer_temp("geom_spoke",
+    required_aes = c("x0", "y0", "r"),
+    compute_group = compute_group_spokes_labs,
+    geom = ggplot2::GeomSegment)
+
+ggtemp:::create_layer_temp("geom_labs",
+    required_aes = c("x0", "y0", "r"),
+    compute_group = compute_group_spokes_labs,
+    geom = ggplot2::GeomText)
+
+ggtemp:::create_layer_temp("geom_chord_highlight",
+    required_aes = c("x0", "y0", "r", "chord"),
+    compute_group = compute_group_chord_highlight,
+    geom = ggplot2::GeomPoint)
+
+
+library(ggplot2)
+library(ggstamp)
+ggcanvas() +
+  aes(x0 = 0, y0 = 0, r = 1, chord = "C") +
+  geom_circle(n_vertices = 50) +
+  geom_circle(n_vertices = 50, aes(r = .6)) +
+  geom_spoke(rotate = 90/6) +
+  geom_labs(maj = T, aes(r = .8)) + 
+  geom_labs(maj = F, aes(r = .4)) +
+  geom_chord_highlight(aes(r = .8), size = 12, color = "red", alpha = .2)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+
+
+
+tibble(phrase = 1:7, chord = LETTERS[1:7]) |>
+  ggplot() + 
+    aes(x0 = 0, y0 = 0, r = 1, chord = chord) + 
+    geom_circle(n_vertices = 50) +
+  geom_circle(n_vertices = 50, aes(r = .6)) +
+  geom_spoke(rotate = 90/6) +
+  geom_labs(maj = T, aes(r = .8)) + 
+  geom_labs(maj = F, aes(r = .4), size = 2) +
+  geom_chord_highlight(aes(r = .8), size = 12, color = "red", alpha = .2) + 
+  coord_equal() +
+  facet_wrap(facet = vars(phrase), nrow = 2) +
+  labs(title = "An unusual chord progression, A to G in Alphabet")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
 
 With the {xxxx} package, we’ll live in a different world (🦄 🦄 🦄) where
 the task is a snap 🫰:
@@ -112,7 +268,7 @@ df_chords_lyrics |>
  ggplot() + 
  aes(chords = chords) + 
  facet_wrap(vars = fct_inorder(lyrics)) +
- geom_cof()
+ geom_circle5ths(key = "D", r = .5)
 ```
 
 # Part I. Work out functionality ✅
@@ -270,8 +426,8 @@ all[11:17]
 #> [3] "[1] stats     graphics  grDevices utils     datasets  methods   base     "
 #> [4] ""                                                                         
 #> [5] "other attached packages:"                                                 
-#> [6] "[1] ggstamp_0.0.0.9000"                                                   
-#> [7] ""
+#> [6] " [1] lubridate_1.9.2      forcats_1.0.0        stringr_1.5.0       "      
+#> [7] " [4] dplyr_1.1.0          purrr_1.0.1          readr_2.1.4         "
 ```
 
 ## `devtools::check()` report
