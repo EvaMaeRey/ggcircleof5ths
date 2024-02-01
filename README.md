@@ -157,7 +157,7 @@ data.frame(x0 = 0:1, y0 = 0:1, r = 1:2/3) |>
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
-compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, key = "C", rotate = 90){
+compute_panel_circle5ths <- function(data, scales, n_vertices = 12, rotate = 90){
   
   data |> 
     mutate(group = row_number()) |> 
@@ -170,17 +170,42 @@ compute_panel_circle5ths <- function(data, scales, n_vertices = 12, maj = TRUE, 
 }
 
 
+tibble(x0 = 0, y0 = 0, r = 1) |>
+  compute_panel_circle5ths()
+#> # A tibble: 13 × 10
+#>       x0    y0     r group     z around  xend  yend         x         y
+#>    <dbl> <dbl> <dbl> <int> <int>  <dbl> <dbl> <dbl>     <dbl>     <dbl>
+#>  1     0     0     1     1     0   1.57     0     0  6.12e-17  1   e+ 0
+#>  2     0     0     1     1     1   2.09     0     0 -5   e- 1  8.66e- 1
+#>  3     0     0     1     1     2   2.62     0     0 -8.66e- 1  5.00e- 1
+#>  4     0     0     1     1     3   3.14     0     0 -1   e+ 0  1.22e-16
+#>  5     0     0     1     1     4   3.67     0     0 -8.66e- 1 -5   e- 1
+#>  6     0     0     1     1     5   4.19     0     0 -5.00e- 1 -8.66e- 1
+#>  7     0     0     1     1     6   4.71     0     0 -1.84e-16 -1   e+ 0
+#>  8     0     0     1     1     7   5.24     0     0  5.00e- 1 -8.66e- 1
+#>  9     0     0     1     1     8   5.76     0     0  8.66e- 1 -5.00e- 1
+#> 10     0     0     1     1     9   6.28     0     0  1   e+ 0 -2.45e-16
+#> 11     0     0     1     1    10   6.81     0     0  8.66e- 1  5   e- 1
+#> 12     0     0     1     1    11   7.33     0     0  5.00e- 1  8.66e- 1
+#> 13     0     0     1     1    12   7.85     0     0  3.06e-16  1   e+ 0
+
 compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate = 90-30){
   
-    major = c("C", "G", "D", "A", "E", "B",
-            "Gb","Db", "Ab", "Eb", "Bb", "F")
-  minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
-            "Bbm", "Fm", "Cm", "Gm", "Dm")
+  major_ref = c("C", "F" , "Bb", "Eb", "Ab", "Db", "Gb", "B",  "E",  "A",  "D",  "G")
+  minor_ref = c("Am", "Dm", "Gm" , "Cm", "Fm", "Bbm", "Ebm", "G#m", "C#m", "F#m", "Bm", "Em") 
+    
+  if(key %in% major_ref){key_index <- which(major_ref == key)}
+  if(key %in% minor_ref){key_index <- which(minor_ref == key)}
   
-    if(maj){label <- major}else{label <- minor}
-
+  keys_reorder_indices <- if(key_index == 1){1:12}else{c(key_index:12, 1:(key_index-1))}
   
-  compute_panel_circle5ths(data = data, scales = scales, maj = maj, key = key, rotate = rotate) |>
+  major = major_ref[keys_reorder_indices]
+  minor = minor_ref[keys_reorder_indices]
+  
+  if(maj){label <- major}else{label <- minor}
+  
+  compute_panel_circle5ths(data = data, scales = scales, 
+                           rotate = rotate, n_vertices = 12) |>
     slice(-nrow(data)) |>
     mutate(major = major) |>
     mutate(minor = minor) |>
@@ -189,16 +214,48 @@ compute_group_spokes_labs <- function(data, scales, maj = T, key = "C", rotate =
   
 }
 
+tibble(x0 = 0, y0 = 0, r = 1, chord = "c") |>
+  compute_group_spokes_labs()
+#> # A tibble: 12 × 14
+#>       x0    y0     r chord group     z around  xend  yend         x         y
+#>    <dbl> <dbl> <dbl> <chr> <int> <int>  <dbl> <dbl> <dbl>     <dbl>     <dbl>
+#>  1     0     0     1 c         1     1   1.57     0     0  6.12e-17  1   e+ 0
+#>  2     0     0     1 c         1     2   2.09     0     0 -5   e- 1  8.66e- 1
+#>  3     0     0     1 c         1     3   2.62     0     0 -8.66e- 1  5.00e- 1
+#>  4     0     0     1 c         1     4   3.14     0     0 -1   e+ 0  1.22e-16
+#>  5     0     0     1 c         1     5   3.67     0     0 -8.66e- 1 -5   e- 1
+#>  6     0     0     1 c         1     6   4.19     0     0 -5.00e- 1 -8.66e- 1
+#>  7     0     0     1 c         1     7   4.71     0     0 -1.84e-16 -1   e+ 0
+#>  8     0     0     1 c         1     8   5.24     0     0  5.00e- 1 -8.66e- 1
+#>  9     0     0     1 c         1     9   5.76     0     0  8.66e- 1 -5.00e- 1
+#> 10     0     0     1 c         1    10   6.28     0     0  1   e+ 0 -2.45e-16
+#> 11     0     0     1 c         1    11   6.81     0     0  8.66e- 1  5.00e- 1
+#> 12     0     0     1 c         1    12   7.33     0     0  5.00e- 1  8.66e- 1
+#> # ℹ 3 more variables: major <chr>, minor <chr>, label <chr>
+
 
 compute_group_chord_highlight <- function(data, scales, maj = T, key = "C", rotate = rotate){
   
+  major_ref = c("C", "F" , "Bb", "Eb", "Ab", "Db", "Gb", "B",  "E",  "A",  "D",  "G")
+
   
-  compute_group_spokes_labs(data = data, scales = scales, maj = maj, key = key) |>
+  data |>
+    mutate(is_minor = !(chord %in% major_ref )) |>
+    mutate(r = r / ifelse(is_minor, 2, 1)) |>
+  compute_group_spokes_labs(scales = scales, maj = maj, key = key) |>
     filter(major == chord | minor == chord)
   
   
 }
 
+
+tibble(x0 = 0, y0 = 0, r = 1, chord = "F") |>
+  compute_group_chord_highlight()
+#> # A tibble: 1 × 15
+#>      x0    y0     r chord is_minor group     z around  xend  yend     x     y
+#>   <dbl> <dbl> <dbl> <chr> <lgl>    <int> <int>  <dbl> <dbl> <dbl> <dbl> <dbl>
+#> 1     0     0     1 F     FALSE        1     2   2.09     0     0  -0.5 0.866
+#> # ℹ 3 more variables: major <chr>, minor <chr>, label <chr>
 
 ggtemp:::create_layer_temp("geom_circle",
     required_aes = c("x0", "y0", "r"),
@@ -219,6 +276,8 @@ ggtemp:::create_layer_temp("geom_chord_highlight",
     required_aes = c("x0", "y0", "r", "chord"),
     compute_group = compute_group_chord_highlight,
     geom = ggplot2::GeomPoint)
+
+
 
 
 library(ggplot2)
@@ -254,6 +313,61 @@ tibble(phrase = 1:7, chord = LETTERS[1:7]) |>
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+
+``` r
+
+
+geom_chord_cof <- function(r = 1, size = 1, color_highlight = "magenta", alpha_highlight = .4,
+                          size_highlight = 7, key = "C"){
+  
+  list(
+  geom_circle(n_vertices = 50, aes(r = r)), 
+  geom_circle(n_vertices = 50, aes(r = r*.6)), 
+  geom_spoke(rotate = 90/6, aes(r = r)), 
+  geom_chord_highlight(aes(r = r*.8), size = size*size_highlight, color = color_highlight, 
+                       alpha = alpha_highlight, key = key),
+  geom_labs(maj = F, aes(r = r*.4), size = size *2, key = key), 
+  geom_labs(maj = T, aes(r = r*.8), key = key) , 
+  NULL
+  )
+  
+}
+
+
+tibble(chord_index = 0:6, 
+       chord = LETTERS[1:7]) |>
+  ggplot() + 
+    aes(x0 = chord_index %% 4 , 
+        y0 = -(chord_index %/% 4), 
+        chord = chord) + 
+    geom_chord_cof(r = .45, key = "D") + 
+    coord_equal() +
+    labs(title = "An unusual chord progression: A to G in Alphabet")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Visualizing some of this discussion… ‘A vs Am introduces chromaticism’
+<https://switchedonpop.com/episodes/olivia-rodrigo-guts-vampire-bad-idea-right>
+
+``` r
+
+tibble::tribble(~ lyric, ~chord, 
+"Hate to give the satisfaction, asking how you're doing ... ", "F",
+"...now, How's the castle built off people you pretend to care a-...", "A",
+"-bout? Just what you wanted, Look at ...", "Bb",
+"...you, cool guy, you got it", "Bbm") |>
+  ggplot() + 
+    aes(x0 = 0, 
+        y0 = 0, 
+        chord = chord) + 
+    geom_chord_cof(r = .45, key = "F") + 
+    coord_equal() +
+  facet_wrap(~fct_inorder(lyric %>% str_wrap(25)), nrow = 1) +
+    labs(title = "Vampire (& Creep) chord progression")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 With the {xxxx} package, we’ll live in a different world (🦄 🦄 🦄) where
 the task is a snap 🫰:
