@@ -23,7 +23,8 @@ major = c("C", "G", "D", "A", "E", "B",
 minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
             "Bbm", "Fm", "Cm", "Gm", "Dm") |> rev()
 
-create_chord_df <- function(){
+create_chord_df <- function(key = "C"){
+  
   
   data.frame(major, minor) |>
   mutate(around = row_number()/n()) |>
@@ -187,8 +188,33 @@ tibble::tribble(~ chord, ~lyric,
     geom_chord_point(r = .45, key = "F") + 
   facet_wrap(~fct_inorder(lyric %>% str_wrap(25)), nrow = 1) +
     labs(title = "Vampire (& Creep) chord progression")
+
 ```
 
+
+```{r fig.}
+tribble(~chord_name, ~lyric,
+        "C", "It goes like this,",
+        "F", "the fourth,",
+        "G","the fifth",
+        "Am","the minor fall ...",
+        "F","major",
+        "G", "lift")  |>
+  ggplot() + 
+    aes(chord = chord_name) + 
+    geom_chord_point() + 
+    facet_wrap(~fct_inorder(lyric %>% str_wrap(25)), nrow = 2) +
+    labs(title = "'Haleluia' describes its chord progression in its lyrics") + 
+  theme_void()
+```
+
+
+```{r}
+ggplot() +
+  stamp_cof() +
+  coord_equal() + 
+  theme_void()
+```
   
 
 

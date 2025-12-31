@@ -1,12 +1,11 @@
 ``` r
 library(tidyverse)
-#> Warning: package 'ggplot2' was built under R version 4.4.1
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
-#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
-#> ✔ ggplot2   4.0.0     ✔ tibble    3.2.1
-#> ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-#> ✔ purrr     1.0.2     
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.6
+#> ✔ forcats   1.0.1     ✔ stringr   1.6.0
+#> ✔ ggplot2   4.0.1     ✔ tibble    3.3.0
+#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+#> ✔ purrr     1.2.0     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter() masks stats::filter()
 #> ✖ dplyr::lag()    masks stats::lag()
@@ -16,7 +15,8 @@ major = c("C", "G", "D", "A", "E", "B",
 minor = c("Am", "Em", "Bm", "F#m", "C#m", "G#m", "Ebm",
             "Bbm", "Fm", "Cm", "Gm", "Dm") |> rev()
 
-create_chord_df <- function(){
+create_chord_df <- function(key = "C"){
+  
   
   data.frame(major, minor) |>
   mutate(around = row_number()/n()) |>
@@ -44,7 +44,7 @@ create_chord_df()
 #>  6 0.25    1.22e-16 -1     minor  Cm        1 -1      1.22e-16
 #>  7 0.333  -5   e- 1 -0.866 major  Ab        2 -1.73  -1   e+ 0
 #>  8 0.333  -5   e- 1 -0.866 minor  Fm        1 -0.866 -5   e- 1
-#>  9 0.417  -8.66e- 1 -0.500 major  Db        2 -1.00  -1.73e+ 0
+#>  9 0.417  -8.66e- 1 -0.500 major  Db        2 -1.000 -1.73e+ 0
 #> 10 0.417  -8.66e- 1 -0.500 minor  Bbm       1 -0.500 -8.66e- 1
 #> # ℹ 14 more rows
 
@@ -223,3 +223,30 @@ tibble::tribble(~ chord, ~lyric,
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+tribble(~chord_name, ~lyric,
+        "C", "It goes like this,",
+        "F", "the fourth,",
+        "G","the fifth",
+        "Am","the minor fall ...",
+        "F","major",
+        "G", "lift")  |>
+  ggplot() + 
+    aes(chord = chord_name) + 
+    geom_chord_point() + 
+    facet_wrap(~fct_inorder(lyric %>% str_wrap(25)), nrow = 2) +
+    labs(title = "'Haleluia' describes its chord progression in its lyrics") + 
+  theme_void()
+```
+
+![](README_files/figure-gfm/fig.-1.png)<!-- -->
+
+``` r
+ggplot() +
+  stamp_cof() +
+  coord_equal() + 
+  theme_void()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
